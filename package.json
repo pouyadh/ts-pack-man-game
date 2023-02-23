@@ -1,5 +1,25 @@
 {
+  "name": "ts-packman-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "parcel src/index.html",
+    "build": "parcel build src/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pouyadh/ts-pack-man-game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pouyadh/ts-pack-man-game/issues"
+  },
+  "homepage": "https://github.com/pouyadh/ts-pack-man-game#readme",
   "devDependencies": {
+    "parcel-bundler": "^1.12.5",
     "typescript": "^4.9.5"
   }
 }
