@@ -128,8 +128,7 @@ export class Game {
   }
 
   resetMode() {
-    this.mode = this.modes[0][0];
-    this.modeChangeTime = Date.now() + this.modes[0][1];
+    this.setMode(this.modes[0][0], this.modes[0][1]);
   }
 
   handleKeyboard(e: KeyboardEvent) {
@@ -145,38 +144,32 @@ export class Game {
     }
   }
 
-  private arbitrate() {
-    const colGoasts = this.map.goasts.filter((g) =>
-      g.position.isEqualTo(this.map.packman.position)
-    );
-    if (colGoasts.length > 0) {
-      if (this.mode === "Frightened") {
-        colGoasts.forEach((g) => {
-          this.score += this.arrestScore;
-          console.log(g.color, "Eaten");
-          g.setMode("Eaten");
-        });
-      } else {
-        this.pause();
-        this.packmanLive--;
-        if (this.packmanLive < 0) {
-          this.graphic.showBlinkingMessage("GameOver!");
-        }
-
-        setTimeout(() => {
-          if (this.packmanLive >= 0) {
-            this.map.packman.position = this.map.initialPositions.packman!;
-            this.map.blinky.position = this.map.initialPositions.blinky!;
-            this.map.pinky.position = this.map.initialPositions.pinky!;
-            this.map.inky.position = this.map.initialPositions.inky!;
-            this.map.clyde.position = this.map.initialPositions.clyde!;
-            this.resetMode();
-            this.start();
-          }
-        }, 3000);
-      }
+  private handlePackmanDie() {
+    this.pause();
+    this.packmanLive--;
+    if (this.packmanLive < 0) {
+      this.graphic.showBlinkingMessage("GameOver!");
     }
 
+    setTimeout(() => {
+      if (this.packmanLive >= 0) {
+        this.map.packman.position = this.map.initialPositions.packman!;
+        this.map.blinky.position = this.map.initialPositions.blinky!;
+        this.map.pinky.position = this.map.initialPositions.pinky!;
+        this.map.inky.position = this.map.initialPositions.inky!;
+        this.map.clyde.position = this.map.initialPositions.clyde!;
+        this.resetMode();
+        this.start();
+      }
+    }, 3000);
+  }
+
+  private handleWin() {
+    this.pause();
+    this.graphic.showBlinkingMessage("Winner Winner \n Chicken Dinner!");
+  }
+
+  private eat() {
     const packmanCell = this.map.getCell(this.map.packman.position);
     if (packmanCell === Cell.dot) {
       this.map.setCell(this.map.packman.position, Cell.empty);
@@ -190,16 +183,33 @@ export class Game {
     }
 
     if (!this.remainingDots && !this.remainingArrestWarrant) {
-      console.log("Game End.");
+      this.handleWin();
+    }
+  }
+
+  private arbitrate() {
+    const colGoasts = this.map.goasts.filter((g) =>
+      g.position.isEqualTo(this.map.packman.position)
+    );
+
+    for (let g of colGoasts) {
+      if (g.mode === "Frightened") {
+        this.score += this.arrestScore;
+        g.setMode("Eaten");
+      } else if (g.mode !== "Eaten") {
+        this.handlePackmanDie();
+        break;
+      }
     }
   }
 
   private proccess() {
     this.updateMode();
     const map = this.map;
-    [map.packman, map.blinky, map.pinky, map.inky, map.clyde].forEach(
-      (motile) => motile.process()
-    );
+    map.packman.process();
+    this.arbitrate();
+    map.goasts.forEach((g) => g.process());
+    this.eat();
     this.arbitrate();
   }
 }
