@@ -20,6 +20,8 @@ export class Graphic {
   private powerPillVisible: boolean = true;
   private moveOffset: number = 0;
 
+  private packmanSpritePostion: Position | null = null;
+
   constructor(c: {
     rootElement: HTMLElement;
     spritesPath: string;
@@ -45,7 +47,6 @@ export class Graphic {
       this.powerPillVisible = !this.powerPillVisible;
       this.moveOffset = this.moveOffset ? 0 : 1;
     }, 200);
-    console.log(this);
   }
 
   set maxCanvasSize(size: RectSize) {
@@ -93,9 +94,24 @@ export class Graphic {
     this.context.fillStyle = "black";
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
-  private drawWalls() {
+  private drawStatics() {
     this.context.strokeStyle = "#0000ff";
     this.context.stroke(this.wallsPath2D);
+    this.map.forEachCell((cell, i, j) => {
+      switch (cell) {
+        case Cell.dot:
+          this.drawCircle({ i, j, size: 3, color: "white" });
+          break;
+        case Cell.arrestWarrant:
+          if (this.powerPillVisible) {
+            this.drawCircle({ i, j, size: 10, color: "orange" });
+          }
+          break;
+        case Cell.gate:
+          this.drawSquare({ i, j, size: 4, color: "pink" });
+          break;
+      }
+    });
   }
 
   private drawSquare(s: { i: number; j: number; size: number; color: string }) {
@@ -131,6 +147,7 @@ export class Graphic {
   }
 
   private drawSprite(si: number, sj: number, pos: Position) {
+    if (!this.isSpriteReady) return;
     this.context.drawImage(
       this.sprites,
       si * 32,
@@ -144,91 +161,46 @@ export class Graphic {
     );
   }
 
+  private drawGoast(goast: Goast, spriteRow: number) {
+    switch (goast.mode) {
+      case "Eaten":
+        this.drawSprite(goast.direction.vi + 8, 5, goast.position);
+        break;
+      case "Frightened":
+        this.drawSprite(goast.direction.vi + 8, 4, goast.position);
+        break;
+      default:
+        this.drawSprite(
+          this.moveOffset + goast.direction.vi * 2,
+          spriteRow,
+          goast.position
+        );
+    }
+  }
+
+  private drawGoasts() {
+    const { blinky, pinky, inky, clyde } = this.map;
+    this.drawGoast(blinky, 4);
+    this.drawGoast(pinky, 5);
+    this.drawGoast(inky, 6);
+    this.drawGoast(clyde, 7);
+  }
+
+  private drawPackman() {
+    const packman = this.map.packman;
+    if (!this.packmanSpritePostion) {
+      this.drawSprite(this.moveOffset, packman.direction.vi, packman.position);
+    } else {
+      const { i, j } = this.packmanSpritePostion;
+      this.drawSprite(i, j, packman.position);
+    }
+  }
+
   public refresh() {
     this.clear();
-    this.drawWalls();
-    this.map.forEachCell((cell, i, j) => {
-      switch (cell) {
-        case Cell.dot:
-          this.drawCircle({ i, j, size: 3, color: "white" });
-          break;
-        case Cell.arrestWarrant:
-          if (this.powerPillVisible) {
-            this.drawCircle({ i, j, size: 10, color: "orange" });
-          }
-          break;
-        case Cell.gate:
-          this.drawSquare({ i, j, size: 4, color: "pink" });
-          break;
-      }
-    });
-
-    if (!this.isSpriteReady) return;
-    const { packman, blinky, pinky, inky, clyde } = this.map;
-
-    switch (blinky.mode) {
-      case "Eaten":
-        this.drawSprite(blinky.direction.vi + 8, 5, blinky.position);
-        break;
-      case "Frightened":
-        this.drawSprite(blinky.direction.vi + 8, 4, blinky.position);
-        break;
-      default:
-        this.drawSprite(
-          this.moveOffset + blinky.direction.vi * 2,
-          4,
-          blinky.position
-        );
-    }
-
-    switch (pinky.mode) {
-      case "Eaten":
-        this.drawSprite(pinky.direction.vi + 8, 5, pinky.position);
-        break;
-      case "Frightened":
-        this.drawSprite(pinky.direction.vi + 8, 4, pinky.position);
-        break;
-      default:
-        this.drawSprite(
-          this.moveOffset + pinky.direction.vi * 2,
-          5,
-          pinky.position
-        );
-    }
-
-    switch (inky.mode) {
-      case "Eaten":
-        this.drawSprite(inky.direction.vi + 8, 5, inky.position);
-        break;
-      case "Frightened":
-        this.drawSprite(inky.direction.vi + 8, 4, inky.position);
-        break;
-      default:
-        this.drawSprite(
-          this.moveOffset + inky.direction.vi * 2,
-          6,
-          inky.position
-        );
-    }
-
-    console.log(clyde.mode);
-
-    switch (clyde.mode) {
-      case "Eaten":
-        this.drawSprite(clyde.direction.vi + 8, 5, clyde.position);
-        break;
-      case "Frightened":
-        this.drawSprite(clyde.direction.vi + 8, 4, clyde.position);
-        break;
-      default:
-        this.drawSprite(
-          this.moveOffset + clyde.direction.vi * 2,
-          7,
-          clyde.position
-        );
-    }
-
-    this.drawSprite(this.moveOffset, packman.direction.vi, packman.position);
+    this.drawStatics();
+    this.drawGoasts();
+    this.drawPackman();
 
     // if (this.showGoastTarget) {
     //   this.map.goasts.forEach(({ target, color }) => {
@@ -275,5 +247,19 @@ export class Graphic {
   public hideMessage() {
     this.messageElement.textContent = "";
     this.messageElement.className = "";
+  }
+
+  public animatePackmanDeath() {
+    return new Promise<void>((res, rej) => {
+      this.packmanSpritePostion = new Position(2, 0);
+      const i = setInterval(() => {
+        this.packmanSpritePostion!.i++;
+        if (this.packmanSpritePostion!.i === 14) {
+          clearInterval(i);
+          this.packmanSpritePostion = null;
+          res();
+        }
+      }, 350);
+    });
   }
 }

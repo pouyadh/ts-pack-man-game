@@ -144,24 +144,22 @@ export class Game {
     }
   }
 
-  private handlePackmanDie() {
+  private async handlePackmanDie() {
     this.pause();
+    //this.proccess();
     this.packmanLive--;
+    await this.graphic.animatePackmanDeath();
     if (this.packmanLive < 0) {
       this.graphic.showBlinkingMessage("GameOver!");
+    } else {
+      this.map.packman.position = this.map.initialPositions.packman!;
+      this.map.blinky.position = this.map.initialPositions.blinky!;
+      this.map.pinky.position = this.map.initialPositions.pinky!;
+      this.map.inky.position = this.map.initialPositions.inky!;
+      this.map.clyde.position = this.map.initialPositions.clyde!;
+      this.resetMode();
+      this.start();
     }
-
-    setTimeout(() => {
-      if (this.packmanLive >= 0) {
-        this.map.packman.position = this.map.initialPositions.packman!;
-        this.map.blinky.position = this.map.initialPositions.blinky!;
-        this.map.pinky.position = this.map.initialPositions.pinky!;
-        this.map.inky.position = this.map.initialPositions.inky!;
-        this.map.clyde.position = this.map.initialPositions.clyde!;
-        this.resetMode();
-        this.start();
-      }
-    }, 3000);
   }
 
   private handleWin() {
