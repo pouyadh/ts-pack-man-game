@@ -16,13 +16,12 @@ canvas {
   overflow: hidden;
 }
 #packman #message {
-  white-space: nowrap;
   position: absolute;
   top: 50%;
   left: -100%;
   transform: translate(-50%, -50%);
 
-  font: bold 48px sans-serif;
+  font: bold 42px sans-serif;
   padding: 10px 15px;
 }
 
