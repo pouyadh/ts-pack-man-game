@@ -2,12 +2,15 @@ import { PackMan } from "./PackMan";
 import { Position, RectSize, Vector } from "./utils";
 import { Cell, Map } from "./Map";
 import { Goast } from "./goasts/Goast";
+import { Game } from "./Game";
 
 export class Graphic {
   private rootElement: HTMLElement;
   private canvas: HTMLCanvasElement;
   private messageElement: HTMLDivElement;
   private containerElement: HTMLDivElement;
+  private headerElement: HTMLDivElement;
+  private footerElement: HTMLDivElement;
   private context: CanvasRenderingContext2D;
   private sprites: HTMLImageElement;
   private refreshInterval: number = 1000;
@@ -21,22 +24,34 @@ export class Graphic {
   private moveOffset: number = 0;
 
   private packmanSpritePostion: Position | null = null;
+  private game: Game;
 
   constructor(c: {
     rootElement: HTMLElement;
     spritesPath: string;
     map: Map;
     maxCanvasSize: RectSize;
+    game: Game;
   }) {
+    this.game = c.game;
     this.rootElement = c.rootElement;
     this.rootElement.innerHTML = "";
     this.containerElement = document.createElement("div");
     this.canvas = document.createElement("canvas");
     this.messageElement = document.createElement("div");
+    this.headerElement = document.createElement("div");
+    this.footerElement = document.createElement("div");
     this.messageElement.id = "message";
     this.containerElement.id = "packman-container";
-    this.containerElement.append(this.canvas, this.messageElement);
-    this.rootElement.appendChild(this.containerElement);
+    this.containerElement.append(
+      this.headerElement,
+      this.canvas,
+      this.messageElement,
+      this.footerElement
+    );
+    this.headerElement.classList.add("flex");
+    this.footerElement.classList.add("flex");
+    this.rootElement.append(this.containerElement);
     this.context = this.canvas.getContext("2d")!;
     this.map = c.map;
     this.sprites = new Image();
@@ -197,6 +212,11 @@ export class Graphic {
   }
 
   public refresh() {
+    const { score, topScore, packmanLive, level, mode } = this.game;
+    this.headerElement.innerHTML = `<span>SCORE</br>${score}</span><span>TOP-SCORE</br>${topScore}</span> </span><span>MODE</br>${mode}</span>`;
+    this.footerElement.innerHTML = `<span>LIVES</br>${
+      packmanLive === -1 ? "-" : packmanLive
+    }</span><span>LEVEL</br>${level}</span>`;
     this.clear();
     this.drawStatics();
     this.drawGoasts();

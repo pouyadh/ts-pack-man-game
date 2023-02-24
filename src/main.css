@@ -10,6 +10,9 @@ canvas {
   background-color: black;
 }
 
+#packman {
+  text-align: center;
+}
 #packman #packman-container {
   position: relative;
   display: inline-block;
@@ -62,4 +65,14 @@ canvas {
     left: 50%;
     opacity: 0;
   }
+}
+
+.flex {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+span {
+  text-align: center;
 }

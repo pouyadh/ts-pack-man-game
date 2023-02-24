@@ -34,19 +34,22 @@ export class Game {
   private modes: [mode: GameAIMode, duration: number][];
   private modeIndex: number = 0;
   private modeChangeTime: number = 0;
-  private mode: GameAIMode = "Scatter";
+  public mode: GameAIMode = "Scatter";
 
   private frightenedDuration: number = 0;
 
   private dotScore: number;
   private arrestScore: number;
 
-  private score: number;
+  public topScore: number = 0;
+  public _score: number = 0;
+
+  public level: number = 1;
 
   private remainingDots: number;
   private remainingArrestWarrant: number;
 
-  private packmanLive: number;
+  public packmanLive: number;
 
   private graphic: Graphic;
 
@@ -59,6 +62,7 @@ export class Game {
       map: this.map,
       maxCanvasSize: c.maxCanvasSize,
       spritesPath: c.spritePath,
+      game: this,
     });
     this.modes = c.modes.map((m) => [m[0], m[1] * 1000]);
     this.frightenedDuration = c.frightenedDuration * 1000;
@@ -81,6 +85,16 @@ export class Game {
     this.packmanLive = c.packmanLive;
 
     this.handleKeyboard = this.handleKeyboard.bind(this);
+  }
+
+  get score() {
+    return this._score;
+  }
+  set score(s: number) {
+    this._score = s;
+    if (s > this.topScore) {
+      this.topScore = s;
+    }
   }
 
   private startProcess() {
@@ -165,6 +179,7 @@ export class Game {
   private handleWin() {
     this.pause();
     this.graphic.showBlinkingMessage("Winner Winner \n Chicken Dinner!");
+    this.level++;
   }
 
   private eat() {
