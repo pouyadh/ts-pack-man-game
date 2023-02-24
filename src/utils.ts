@@ -90,6 +90,13 @@ export class Vector {
   toString() {
     return `${this.i},${this.j}`;
   }
+  get vi() {
+    if (this.isEqualTo(Vector.RIGHT)) return 0;
+    if (this.isEqualTo(Vector.LEFT)) return 1;
+    if (this.isEqualTo(Vector.UP)) return 2;
+    if (this.isEqualTo(Vector.DOWN)) return 3;
+    return -1;
+  }
 }
 export class Position {
   static random(maxI: number, maxJ: number) {

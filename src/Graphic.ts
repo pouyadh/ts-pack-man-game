@@ -3,19 +3,6 @@ import { Position, RectSize, Vector } from "./utils";
 import { Cell, Map } from "./Map";
 import { Goast } from "./goasts/Goast";
 
-const v2o = {
-  [Vector.RIGHT]: 0,
-  [Vector.LEFT]: 2,
-  [Vector.UP]: 4,
-  [Vector.DOWN]: 6,
-};
-const v2op = {
-  [Vector.RIGHT]: 0,
-  [Vector.LEFT]: 1,
-  [Vector.UP]: 2,
-  [Vector.DOWN]: 3,
-};
-
 export class Graphic {
   private rootElement: HTMLElement;
   private canvas: HTMLCanvasElement;
@@ -181,14 +168,14 @@ export class Graphic {
 
     switch (blinky.mode) {
       case "Eaten":
-        this.drawSprite(v2op[blinky.direction] + 8, 5, blinky.position);
+        this.drawSprite(blinky.direction.vi + 8, 5, blinky.position);
         break;
       case "Frightened":
-        this.drawSprite(v2op[blinky.direction] + 8, 4, blinky.position);
+        this.drawSprite(blinky.direction.vi + 8, 4, blinky.position);
         break;
       default:
         this.drawSprite(
-          this.moveOffset + v2o[blinky.direction],
+          this.moveOffset + blinky.direction.vi * 2,
           4,
           blinky.position
         );
@@ -196,14 +183,14 @@ export class Graphic {
 
     switch (pinky.mode) {
       case "Eaten":
-        this.drawSprite(v2op[pinky.direction] + 8, 5, pinky.position);
+        this.drawSprite(pinky.direction.vi + 8, 5, pinky.position);
         break;
       case "Frightened":
-        this.drawSprite(v2op[pinky.direction] + 8, 4, pinky.position);
+        this.drawSprite(pinky.direction.vi + 8, 4, pinky.position);
         break;
       default:
         this.drawSprite(
-          this.moveOffset + v2o[pinky.direction],
+          this.moveOffset + pinky.direction.vi * 2,
           5,
           pinky.position
         );
@@ -211,14 +198,14 @@ export class Graphic {
 
     switch (inky.mode) {
       case "Eaten":
-        this.drawSprite(v2op[inky.direction] + 8, 5, inky.position);
+        this.drawSprite(inky.direction.vi + 8, 5, inky.position);
         break;
       case "Frightened":
-        this.drawSprite(v2op[inky.direction] + 8, 4, inky.position);
+        this.drawSprite(inky.direction.vi + 8, 4, inky.position);
         break;
       default:
         this.drawSprite(
-          this.moveOffset + v2o[inky.direction],
+          this.moveOffset + inky.direction.vi * 2,
           6,
           inky.position
         );
@@ -228,20 +215,20 @@ export class Graphic {
 
     switch (clyde.mode) {
       case "Eaten":
-        this.drawSprite(v2op[clyde.direction] + 8, 5, clyde.position);
+        this.drawSprite(clyde.direction.vi + 8, 5, clyde.position);
         break;
       case "Frightened":
-        this.drawSprite(v2op[clyde.direction] + 8, 4, clyde.position);
+        this.drawSprite(clyde.direction.vi + 8, 4, clyde.position);
         break;
       default:
         this.drawSprite(
-          this.moveOffset + v2o[clyde.direction],
+          this.moveOffset + clyde.direction.vi * 2,
           7,
           clyde.position
         );
     }
 
-    this.drawSprite(this.moveOffset, v2op[packman.direction], packman.position);
+    this.drawSprite(this.moveOffset, packman.direction.vi, packman.position);
 
     // if (this.showGoastTarget) {
     //   this.map.goasts.forEach(({ target, color }) => {
