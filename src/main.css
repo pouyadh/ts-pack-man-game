@@ -41,6 +41,11 @@ canvas {
   animation: coming-in-out 1.5s ease;
 }
 
+#packman #message.static {
+  left: 50%;
+  cursor: pointer;
+}
+
 @keyframes coming-in-out {
   0% {
     left: -100%;

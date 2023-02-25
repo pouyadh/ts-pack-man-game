@@ -244,6 +244,12 @@ export class Graphic {
     return this.sprites.complete;
   }
 
+  public showMessage(message: string) {
+    this.messageElement.textContent = message;
+    this.messageElement.className = "";
+    void this.messageElement.offsetWidth;
+    this.messageElement.classList.add("static");
+  }
   public showBlinkingMessage(message: string) {
     this.messageElement.textContent = message;
     this.messageElement.className = "";
@@ -280,6 +286,16 @@ export class Graphic {
           res();
         }
       }, 350);
+    });
+  }
+
+  public clickOnContainer() {
+    return new Promise((res, rej) => {
+      const handleClick = (e: Event) => {
+        this.containerElement.removeEventListener("click", handleClick);
+        res(e);
+      };
+      this.containerElement.addEventListener("click", handleClick);
     });
   }
 }
