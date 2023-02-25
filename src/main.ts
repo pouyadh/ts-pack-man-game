@@ -50,7 +50,7 @@ async function run() {
     packmanLive: 3,
   });
 
-  game.start();
+  game.run();
 }
 
 run();

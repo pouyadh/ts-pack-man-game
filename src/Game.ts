@@ -3,6 +3,7 @@ import { delay, Motile, Vector } from "./utils";
 import { Goast, GoastMode } from "./goasts/Goast";
 import { PackMan } from "./PackMan";
 import { Graphic } from "./Graphic";
+import { SoundEffect } from "./SoundEffect";
 
 type GameAIMode = "Scatter" | "Chase" | "Frightened";
 
@@ -55,6 +56,8 @@ export class Game {
 
   private processIntervalRef: number | null = null;
 
+  private soundEffect: SoundEffect;
+
   constructor(c: GameConstructor) {
     this.map = new Map(c.mapImageData, c.mapColorDictunary);
     this.graphic = new Graphic({
@@ -64,13 +67,13 @@ export class Game {
       spritesPath: c.spritePath,
       game: this,
     });
+    this.soundEffect = new SoundEffect();
     this.modes = c.modes.map((m) => [m[0], m[1] * 1000]);
     this.frightenedDuration = c.frightenedDuration * 1000;
-    this.resetMode();
 
+    this.score = 0;
     this.dotScore = c.dotScore;
     this.arrestScore = c.arrestScore;
-    this.score = 0;
 
     this.remainingDots = 0;
     this.remainingArrestWarrant = 0;
@@ -83,7 +86,6 @@ export class Game {
     });
 
     this.packmanLive = c.packmanLive;
-
     this.handleKeyboard = this.handleKeyboard.bind(this);
   }
 
@@ -98,6 +100,7 @@ export class Game {
   }
 
   private startProcess() {
+    this.stopProcess();
     this.processIntervalRef = setInterval(() => this.proccess(), 100);
     window.addEventListener("keydown", this.handleKeyboard);
   }
@@ -108,19 +111,39 @@ export class Game {
     }
     window.removeEventListener("keydown", this.handleKeyboard);
   }
-  async start() {
+  async start(reset: boolean = false) {
+    const a = this.soundEffect.play("game_start");
     await this.graphic.showMessageInOut("Get Ready!");
+    await a;
     await this.graphic.showMessageInOut("Go!");
+    if (reset) {
+      this.map.packman.position = this.map.initialPositions.packman!;
+      this.map.blinky.position = this.map.initialPositions.blinky!;
+      this.map.pinky.position = this.map.initialPositions.pinky!;
+      this.map.inky.position = this.map.initialPositions.inky!;
+      this.map.clyde.position = this.map.initialPositions.clyde!;
+      this.resetMode();
+      this.map.goasts.forEach((g) => (g.mode = this.mode));
+    }
+
     this.startProcess();
   }
+  public async run() {
+    console.log("run");
+    this.graphic.showMessage("Click to Start!");
+    await this.graphic.clickOnContainer();
+    this.graphic.hideMessage();
+    this.start();
+  }
   pause() {
+    this.soundEffect.stopAll();
     this.stopProcess();
   }
 
   gotoFrieghtenedMode() {
     console.log(this.modeIndex);
     this.setMode("Frightened", this.frightenedDuration);
-
+    this.soundEffect.play("power_pellet");
     //this.modeIndex--;
     console.log(this.modeIndex);
   }
@@ -128,6 +151,18 @@ export class Game {
     this.mode = mode;
     this.modeChangeTime = Date.now() + duration;
     this.map.goasts.forEach((g) => g.setMode(this.mode));
+    console.log("mode changed to ->", mode);
+
+    switch (mode) {
+      case "Scatter":
+        this.soundEffect.stop("siren_2");
+        this.soundEffect.play("siren_1", { infinite: true });
+        break;
+      case "Chase":
+        this.soundEffect.stop("siren_2");
+        this.soundEffect.play("siren_2", { infinite: true });
+        break;
+    }
   }
   updateMode() {
     if (this.modeChangeTime < Date.now()) {
@@ -160,19 +195,13 @@ export class Game {
 
   private async handlePackmanDie() {
     this.pause();
-    //this.proccess();
+    this.soundEffect.play("death_1");
     this.packmanLive--;
     await this.graphic.animatePackmanDeath();
     if (this.packmanLive < 0) {
       this.graphic.showBlinkingMessage("GameOver!");
     } else {
-      this.map.packman.position = this.map.initialPositions.packman!;
-      this.map.blinky.position = this.map.initialPositions.blinky!;
-      this.map.pinky.position = this.map.initialPositions.pinky!;
-      this.map.inky.position = this.map.initialPositions.inky!;
-      this.map.clyde.position = this.map.initialPositions.clyde!;
-      this.resetMode();
-      this.start();
+      this.start(true);
     }
   }
 
@@ -180,6 +209,7 @@ export class Game {
     this.pause();
     this.graphic.showBlinkingMessage("Winner Winner \n Chicken Dinner!");
     this.level++;
+    this.soundEffect.play("intermission");
   }
 
   private eat() {
@@ -188,6 +218,7 @@ export class Game {
       this.map.setCell(this.map.packman.position, Cell.empty);
       this.score += this.dotScore;
       this.remainingDots--;
+      this.soundEffect.play("munch_1");
     }
     if (packmanCell === Cell.arrestWarrant) {
       this.map.setCell(this.map.packman.position, Cell.empty);
@@ -209,6 +240,8 @@ export class Game {
       if (g.mode === "Frightened") {
         this.score += this.arrestScore;
         g.setMode("Eaten");
+        this.soundEffect.play("eat_ghost");
+        this.soundEffect.play("retreating");
       } else if (g.mode !== "Eaten") {
         this.handlePackmanDie();
         break;
